@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ангел-помощник | НГМ ассистент</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .card-transition {
+            transition: all 0.3s ease;
+        }
+        .wave-animation {
+            animation: wave 1.5s infinite;
+        }
+        @keyframes wave {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Main App Container -->
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-angel text-2xl"></i>
+                <h1 class="text-xl font-bold">Ангел-помощник</h1>
+            </div>
+            <button id="settingsBtn" class="p-2 rounded-full hover:bg-indigo-700">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4">
+            <!-- Listening Indicator -->
+            <div id="listeningIndicator" class="bg-indigo-100 text-indigo-800 p-3 rounded-lg mb-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-indigo-500 wave-animation"></div>
+                    <span>Слушаю...</span>
+                </div>
+                <button id="toggleListening" class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm">
+                    Пауза
+                </button>
+            </div>
+
+            <!-- Transcription Area -->
+            <div class="bg-gray-100 p-3 rounded-lg mb-4">
+                <p id="transcriptionText" class="text-gray-700">Здесь будет текст разговора...</p>
+            </div>
+
+            <!-- Detected Complaints Section -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-2">Обнаруженные жалобы</h2>
+                <div id="complaintsContainer" class="space-y-3">
+                    <!-- Cards will be added here dynamically -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Navigation -->
+        <footer class="bg-white border-t border-gray-200 p-2 flex justify-around">
+            <button class="p-2 text-indigo-600 flex flex-col items-center">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Главная</span>
+            </button>
+            <button class="p-2 text-gray-500 flex flex-col items-center">
+                <i class="fas fa-history text-xl"></i>
+                <span class="text-xs mt-1">История</span>
+            </button>
+            <button class="p-2 text-gray-500 flex flex-col items-center">
+                <i class="fas fa-book text-xl"></i>
+                <span class="text-xs mt-1">База знаний</span>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Настройки</h3>
+                <button id="closeSettings" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Пол клиента</label>
+                    <div class="flex space-x-2">
+                        <button class="gender-btn flex-1 py-2 px-4 rounded-lg border border-gray-300 bg-gray-100" data-value="female">
+                            Женщина
+                        </button>
+                        <button class="gender-btn flex-1 py-2 px-4 rounded-lg border border-gray-300" data-value="male">
+                            Мужчина
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ведущая рука</label>
+                    <div class="flex space-x-2">
+                        <button class="hand-btn flex-1 py-2 px-4 rounded-lg border border-gray-300 bg-gray-100" data-value="right">
+                            Правша
+                        </button>
+                        <button class="hand-btn flex-1 py-2 px-4 rounded-lg border border-gray-300" data-value="left">
+                            Левша
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Язык интерфейса</label>
+                    <select class="w-full p-2 border border-gray-300 rounded-lg">
+                        <option>Русский</option>
+                        <option>Украинский</option>
+                        <option>English</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Чувствительность распознавания</label>
+                    <input type="range" min="1" max="10" value="5" class="w-full">
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">Голосовой анализ</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex justify-end">
+                <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg w-full max-w-md mx-4 p-6">
+            <div class="mb-4">
+                <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-2"></i>
+                <h3 class="text-lg font-semibold">Важная информация</h3>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+                Приложение предназначено исключительно для справочной и образовательной цели. Оно не является медицинским инструментом и не даёт диагнозов или рекомендаций. Все объяснения основаны на концепциях Новой Германской Медицины.
+            </p>
+            <button id="acceptDisclaimer" class="w-full bg-indigo-600 text-white py-2 rounded-lg">
+                Я понимаю
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sample database
+        const ngmDatabase = {
+            "правое плечо": {
+                "правша": {
+                    "женщина": "Конфликт неспособности защитить себя в профессиональной сфере.",
+                    "мужчина": "Конфликт неспособности обеспечить защиту семьи."
+                },
+                "левша": {
+                    "женщина": "Конфликт неспособности защитить себя в личных отношениях.",
+                    "мужчина": "Конфликт неспособности выразить свою силу."
+                }
+            },
+            "щитовидка": {
+                "общий": "Конфликт невозможности выразить себя или ускорить процесс."
+            },
+            "левое колено": {
+                "правша": {
+                    "женщина": "Конфликт подчинения в отношениях с партнером.",
+                    "мужчина": "Конфликт нежелания уступать в профессиональной сфере."
+                },
+                "левша": {
+                    "женщина": "Конфликт подчинения матери или женской фигуре.",
+                    "мужчина": "Конфликт подчинения отцу или мужской фигуре."
+                }
+            }
+        };
+
+        // Current settings
+        let settings = {
+            gender: 'female',
+            hand: 'right',
+            isListening: true
+        };
+
+        // DOM elements
+        const settingsBtn = document.getElementById('settingsBtn');
+        const closeSettings = document.getElementById('closeSettings');
+        const settingsModal = document.getElementById('settingsModal');
+        const disclaimerModal = document.getElementById('disclaimerModal');
+        const acceptDisclaimer = document.getElementById('acceptDisclaimer');
+        const toggleListening = document.getElementById('toggleListening');
+        const complaintsContainer = document.getElementById('complaintsContainer');
+        const transcriptionText = document.getElementById('transcriptionText');
+
+        // Event listeners
+        settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        acceptDisclaimer.addEventListener('click', () => disclaimerModal.classList.add('hidden'));
+        toggleListening.addEventListener('click', toggleListeningState);
+
+        // Gender and hand selection
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('bg-gray-100'));
+                this.classList.add('bg-gray-100');
+                settings.gender = this.dataset.value;
+            });
+        });
+
+        document.querySelectorAll('.hand-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.hand-btn').forEach(b => b.classList.remove('bg-gray-100'));
+                this.classList.add('bg-gray-100');
+                settings.hand = this.dataset.value;
+            });
+        });
+
+        // Toggle listening state
+        function toggleListeningState() {
+            settings.isListening = !settings.isListening;
+            const indicator = document.getElementById('listeningIndicator');
+            if (settings.isListening) {
+                toggleListening.textContent = 'Пауза';
+                indicator.querySelector('.wave-animation').classList.remove('hidden');
+                simulateListening();
+            } else {
+                toggleListening.textContent = 'Продолжить';
+                indicator.querySelector('.wave-animation').classList.add('hidden');
+            }
+        }
+
+        // Simulate voice recognition
+        function simulateListening() {
+            if (!settings.isListening) return;
+            
+            // Sample phrases that might be said during a session
+            const samplePhrases = [
+                "У меня часто болит правое плечо, особенно после работы.",
+                "Щитовидка беспокоит уже несколько месяцев.",
+                "Иногда чувствую дискомфорт в левом колене.",
+                "Правая рука иногда немеет по утрам."
+            ];
+            
+            // Random phrase
+            const phrase = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
+            transcriptionText.textContent = phrase;
+            
+            // Detect complaints in the phrase
+            detectComplaints(phrase);
+            
+            // Continue listening
+            setTimeout(simulateListening, 5000);
+        }
+
+        // Detect complaints in text
+        function detectComplaints(text) {
+            // Clear previous complaints
+            complaintsContainer.innerHTML = '';
+            
+            // Check for each complaint in the database
+            for (const [complaint, data] of Object.entries(ngmDatabase)) {
+                if (text.toLowerCase().includes(complaint.toLowerCase())) {
+                    addComplaintCard(complaint);
+                }
+            }
+        }
+
+        // Add complaint card to UI
+        function addComplaintCard(complaint) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden card-transition slide-up';
+            card.innerHTML = `
+                <div class="p-3 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="font-medium text-indigo-700">${complaint}</h3>
+                    <button class="text-gray-400 hover:text-gray-600 delete-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-3">
+                    <p class="text-gray-600 text-sm mb-3">${getExplanation(complaint)}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>${new Date().toLocaleTimeString()}</span>
+                        <button class="text-indigo-600 hover:text-indigo-800 details-btn">
+                            <i class="fas fa-info-circle mr-1"></i> Подробнее
+                        </button>
+                    </div>
+                </div>
+            `;
+            complaintsContainer.prepend(card);
+            
+            // Add event listeners to new buttons
+            card.querySelector('.delete-btn').addEventListener('click', () => {
+                card.classList.add('opacity-0', 'h-0', 'mb-0');
+                setTimeout(() => card.remove(), 300);
+            });
+            
+            card.querySelector('.details-btn').addEventListener('click', () => {
+                alert(`Подробное объяснение для "${complaint}":\n\n${getDetailedExplanation(complaint)}`);
+            });
+        }
+
+        // Get brief explanation for a complaint
+        function getExplanation(complaint) {
+            const data = ngmDatabase[complaint];
+            if (data['общий']) {
+                return data['общий'];
+            } else if (data[settings.hand] && data[settings.hand][settings.gender]) {
+                return data[settings.hand][settings.gender];
+            }
+            return "Информация по этой жалобе будет добавлена в будущих обновлениях.";
+        }
+
+        // Get detailed explanation for a complaint (simplified for demo)
+        function getDetailedExplanation(complaint) {
+            return getExplanation(complaint) + "\n\nЭто автоматически сгенерированное объяснение на основе принципов Новой Германской Медицины. Для более точного анализа рекомендуется консультация со специалистом.";
+        }
+
+        // Start simulation after disclaimer is accepted
+        acceptDisclaimer.addEventListener('click', () => {
+            setTimeout(simulateListening, 1000);
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Alex3432215200/alexander" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
